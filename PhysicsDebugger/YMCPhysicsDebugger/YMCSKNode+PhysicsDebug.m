@@ -95,11 +95,24 @@ static NSString* debugLayerName = @"physicsDebugLayer";
  * and attach it to the given node
  */
 - (void)drawRectangleLayer:(SKNode*)node rectWidth:(float)rectWidth rectHeight:(float)rectHeight{
-    CGPathRef bodyPath = CGPathCreateWithRect( CGRectMake(-rectWidth/2,
-                                                          -rectHeight/2,
-                                                          rectWidth,
-                                                          rectHeight),
-                                              nil);
+
+    SKSpriteNode *spriteNode = (SKSpriteNode *)node;
+    float offsetX = rectWidth*spriteNode.anchorPoint.x;
+    float offsety = rectHeight*spriteNode.anchorPoint.y;
+
+//    CGPathRef bodyPath = CGPathCreateWithRect( CGRectMake(-rectWidth/2,
+//                                                          -rectHeight/2,
+//                                                          rectWidth,
+//                                                          rectHeight),
+//                                              nil);
+
+
+    CGPathRef bodyPath = CGPathCreateWithRect( CGRectMake(0-offsetX,
+            0-offsety,
+            rectWidth,
+            rectHeight),
+            nil);
+
     SKShapeNode *shape = [SKShapeNode node];
     shape.path = bodyPath;
     shape.name = debugLayerName;
@@ -115,14 +128,31 @@ static NSString* debugLayerName = @"physicsDebugLayer";
  * and attach it to the given node
  */
 - (void)drawCircleLayer:(SKNode*)node radius:(float)radius {
+
+
     
     radius = radius*2;
-    
-    CGPathRef bodyPath = CGPathCreateWithEllipseInRect(CGRectMake(-radius/2,
-                                                                  -radius/2,
-                                                                  radius,
-                                                                  radius),
-                                                       nil);
+
+    SKSpriteNode *spriteNode = (SKSpriteNode *)node;
+    float offsetX = radius*spriteNode.anchorPoint.x;
+    float offsety = radius*spriteNode.anchorPoint.y;
+
+//
+//    CGPathRef bodyPath = CGPathCreateWithEllipseInRect(CGRectMake(-radius/2,
+//                                                                  -radius/2,
+//                                                                  radius,
+//                                                                  radius),
+//                                                       nil);
+
+    CGPathRef bodyPath = CGPathCreateWithEllipseInRect(CGRectMake(0-offsetX,
+                                                              0-offsety,
+                                                              radius,
+                                                              radius),
+                                                   nil);
+
+
+
+
     SKShapeNode *shape = [SKShapeNode node];
     shape.path = bodyPath;
     shape.name = debugLayerName;
@@ -138,9 +168,28 @@ static NSString* debugLayerName = @"physicsDebugLayer";
  * and attach it to the given node
  */
 - (void)drawPolygonLayer:(SKShapeNode*)node path:(CGPathRef)path{
+
+
+    //
+    // skshpaenode default does not has anchor point
+    // so i assume the anchor point is (0.5,0.5)
+    //
+    // as per
+    // http://stackoverflow.com/questions/20721352/why-skshapenode-does-not-have-anchor-point
+    //
+    float offsetX = node.frame.size.width * 0.5;
+    float offsetY  = node.frame.size.height * 0.5;
+
+
+
+    // as per
+    // http://stackoverflow.com/questions/8545216/applying-cgaffinetransform-to-cgpath
+    //
+    CGAffineTransform  form = CGAffineTransformMake(1, 0, 0, 1, -offsetX, -offsetY);
+    CGPathRef newPath = CGPathCreateMutableCopyByTransformingPath(path, &form);
     
     SKShapeNode *shape = [SKShapeNode node];
-    shape.path = path;
+    shape.path = newPath;
     shape.name = debugLayerName;
     shape.strokeColor = [self debugLayerColor];
     shape.lineWidth = 0.1;
